@@ -3,6 +3,13 @@ const Settings = Me.imports.settings;
 const Widget = Me.imports.widgets;
 const Lib = Me.imports.lib;
 
+const QuietHoursState = {
+  OFF_NOT_QH: 1,
+  OFF_USER: 2,
+  ON_QH: 3,
+  ON_USER: 4
+};
+
 /**
  * Called when the extension is loaded.
  */
@@ -34,36 +41,30 @@ function enable() {
 
     // TODO: load
     if(this._settings.isDoNotDisturb()){
-      this.quietHoursState = 4;
+      this.quietHoursState = QuietHoursState.ON_USER;
     } else {
-      this.quietHoursState = 1;
+      this.quietHoursState = QuietHoursState.OFF_NOT_QH;
     }
 
     this.quietHoursIntervalID = Lib.setInterval(() => {
 
       switch(this.quietHoursState){
-        case 1:
+        case QuietHoursState.OFF_NOT_QH:
           if(this._settings.isQuietHours()){
             this._settings.setDoNotDisturb(true);
-            this.quietHoursState = 3;
+            this.quietHoursState = QuietHoursState.ON_QH;
           }
-          // TODO: If user turns off
         break;
-        case 2:
+        case QuietHoursState.OFF_USER:
           if(!this._settings.isQuietHours()){
-            this.quietHoursState = 1;
+            this.quietHoursState = QuietHoursState.OFF_NOT_QH;
           }
-          // TODO: If user turns on
         break;
-        case 3:
+        case QuietHoursState.ON_QH:
           if(!this._settings.isQuietHours()){
             this._settings.setDoNotDisturb(false);
-            this.quietHoursState = 1;
+            this.quietHoursState = QuietHoursState.OFF_NOT_QH;
           }
-          // TODO: If user turns off
-        break;
-        case 4:
-          // If user turns off
         break;
       }
 
@@ -77,7 +78,7 @@ function enable() {
  */
 function disable() {
     // TODO: save state
-    if(this.quietHoursState === 3){
+    if(this.quietHoursState === QuietHoursState.ON_QH){
       this._settings.setDoNotDisturb(false);
     }
 
@@ -93,20 +94,20 @@ function disable() {
  */
 function _toggle(){
   switch(this.quietHoursState){
-    case 1:
-      this.quietHoursState = 4;
+    case QuietHoursState.OFF_NOT_QH:
+      this.quietHoursState = QuietHoursState.ON_USER;
     break;
-    case 2:
-      this.quietHoursState = 4;
+    case QuietHoursState.OFF_USER:
+      this.quietHoursState = QuietHoursState.ON_USER;
     break;
-    case 3:
-      this.quietHoursState =  2;
+    case QuietHoursState.ON_QH:
+      this.quietHoursState =  QuietHoursState.OFF_USER;
     break;
-    case 4:
+    case QuietHoursState.ON_USER:
       if(this._settings.isQuietHours()){
-        this.quietHoursState = 2;
+        this.quietHoursState = QuietHoursState.OFF_USER;
       } else {
-        this.quietHoursState = 1;
+        this.quietHoursState = QuietHoursState.OFF_NOT_QH;
       }
     break;
   }
