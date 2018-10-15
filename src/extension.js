@@ -1,6 +1,7 @@
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const Settings = Me.imports.settings;
 const Widget = Me.imports.widgets;
+const Lib = Me.imports.lib;
 
 /**
  * Called when the extension is loaded.
@@ -31,6 +32,14 @@ function enable() {
     this._settings.onHideNotificationDotChanged(() => _sync());
     this._settings.onMuteSoundChanged(() => _sync());
 
+    this.quietHoursIntervalID = Lib.setInterval(() => {
+      if(this._settings.shouldQuietHoursActivate()){
+        this._settings.setDoNotDisturb(true, true);
+      } else if (this._settings.shouldQuietHoursDeactivate()){
+        this._settings.setDoNotDisturb(false, true);
+      }
+    }, 1000);
+
     this._sync();
 }
 
@@ -42,6 +51,7 @@ function disable() {
     this._enabledIcon.destroy();
     this._hideDotController.unhideDot();
     this._settings.disconnectAll();
+    Lib.clearInterval(this.quietHoursIntervalID);
 }
 
 /**

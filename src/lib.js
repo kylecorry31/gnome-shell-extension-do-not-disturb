@@ -32,3 +32,17 @@ function initTranslations(extension) {
             Config.LOCALEDIR);
     }
 }
+
+function setInterval(func, millis) {
+    let id = GLib.timeout_add(GLib.PRIORITY_DEFAULT, millis, () => {
+        func();
+
+        return true; // Repeat
+    });
+
+    return id;
+};
+
+function clearInterval(id){
+  GLib.Source.remove(id);
+}

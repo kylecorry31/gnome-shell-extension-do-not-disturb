@@ -19,6 +19,8 @@ var SettingsManager = new Lang.Class({
 		this._appSettings = _getSettings();
 		this._notificationSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.notifications' });
 		this._soundSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.sound' });
+		this.quietHoursOverrided = false;
+		this.isQuietHours = false;
 	},
 
 	/**
@@ -26,7 +28,13 @@ var SettingsManager = new Lang.Class({
 	 *
 	 * @param  {boolean} enabled - True if do not disturb should be enabled, false otherwise.
 	 */
-	setDoNotDisturb(enabled){
+	setDoNotDisturb(enabled, autoActivated){
+		autoActivated = autoActivated || false;
+		if (enabled && !autoActivated){
+			this.quietHoursOverrided = true;
+		} else {
+			this.quietHoursOverrided = false;
+		}
 		this._soundSettings.set_boolean('event-sounds', !enabled);
 		this._notificationSettings.set_boolean('show-banners', !enabled);
 	},
@@ -171,6 +179,63 @@ var SettingsManager = new Lang.Class({
 			this._notificationSettings.disconnect(id);
 		});
 		this.notificationConnections = [];
+	},
+
+	isDuringQuietHours(){
+		var date = new Date();
+
+		var startTime = [12, 16];
+		var endTime = [12, 17];
+
+		var currentTime = [date.getHours(), date.getMinutes()];
+
+		// After start
+		if(currentTime[0] >= startTime[0] && currentTime[1] >= startTime[1]){
+			// Before end
+			return endTime[0] >= currentTime[0] && endTime[1] > currentTime[1];
+		}
+
+		return false;
+	},
+
+	shouldQuietHoursActivate(){
+		if (this.quietHoursOverrided){
+			this.isQuietHours = false;
+			return false;
+		}
+
+		// Within the time
+		if (this.isDuringQuietHours()){
+			if(!this.isQuietHours){
+				this.isQuietHours = !this.isDoNotDisturb();
+				return true;
+			}
+
+			return false;
+		} else {
+			this.quietHoursTurnedOff = false;
+			return false;
+		}
+	},
+
+	shouldQuietHoursDeactivate(){
+		if (this.quietHoursOverrided){
+			this.isQuietHours = false;
+			return false;
+		}
+
+		// Within the time
+		if (this.isDuringQuietHours()){
+			return false;
+		} else {
+
+			if (this.isQuietHours){
+				this.isQuietHours = false;
+				return true;
+			}
+
+			return false;
+		}
 	}
 
 });
