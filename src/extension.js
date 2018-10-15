@@ -32,12 +32,41 @@ function enable() {
     this._settings.onHideNotificationDotChanged(() => _sync());
     this._settings.onMuteSoundChanged(() => _sync());
 
+    // TODO: load
+    if(this._settings.isDoNotDisturb()){
+      this.quietHoursState = 4;
+    } else {
+      this.quietHoursState = 1;
+    }
+
     this.quietHoursIntervalID = Lib.setInterval(() => {
-      if(this._settings.shouldQuietHoursActivate()){
-        this._settings.setDoNotDisturb(true, true);
-      } else if (this._settings.shouldQuietHoursDeactivate()){
-        this._settings.setDoNotDisturb(false, true);
+
+      switch(this.quietHoursState){
+        case 1:
+          if(this._settings.isQuietHours()){
+            this._settings.setDoNotDisturb(true);
+            this.quietHoursState = 3;
+          }
+          // TODO: If user turns off
+        break;
+        case 2:
+          if(!this._settings.isQuietHours()){
+            this.quietHoursState = 1;
+          }
+          // TODO: If user turns on
+        break;
+        case 3:
+          if(!this._settings.isQuietHours()){
+            this._settings.setDoNotDisturb(false);
+            this.quietHoursState = 1;
+          }
+          // TODO: If user turns off
+        break;
+        case 4:
+          // If user turns off
+        break;
       }
+
     }, 1000);
 
     this._sync();
@@ -47,6 +76,11 @@ function enable() {
  * Disables the extension. Tears down all UI components.
  */
 function disable() {
+    // TODO: save state
+    if(this.quietHoursState === 3){
+      this._settings.setDoNotDisturb(false);
+    }
+
     this._disturbToggle.destroy();
     this._enabledIcon.destroy();
     this._hideDotController.unhideDot();
@@ -58,6 +92,24 @@ function disable() {
  * Toggle the status of the do not disturb mode in _settings.
  */
 function _toggle(){
+  switch(this.quietHoursState){
+    case 1:
+      this.quietHoursState = 4;
+    break;
+    case 2:
+      this.quietHoursState = 4;
+    break;
+    case 3:
+      this.quietHoursState =  2;
+    break;
+    case 4:
+      if(this._settings.isQuietHours()){
+        this.quietHoursState = 2;
+      } else {
+        this.quietHoursState = 1;
+      }
+    break;
+  }
   this._settings.setDoNotDisturb(this._disturbToggle.getToggleState()); // This will trigger a call to _sync
 }
 
