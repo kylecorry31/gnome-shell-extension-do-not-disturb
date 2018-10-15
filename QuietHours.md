@@ -1,10 +1,14 @@
 # Quiet Hours
 
 ## Tests
-- [ ] Before: DND off; During: DND on; After: DND off
-- [ ] Before: DND on; During: DND on; After: DND on
-- [ ] Before: DND off; During: DND on - turn off, shouldn't turn back on; After: DND off
-- [ ] Before: DND on; During: DND on - turn off, shouldn't turn back on; After: DND off
+- [x] 1 -> 3
+- [x] 1 -> 4
+- [x] 2 -> 1
+- [x] 2 -> 4
+- [x] 3 -> 1
+- [x] 3 -> 2
+- [x] 4 -> 1
+- [x] 4 -> 2
 
 
 
